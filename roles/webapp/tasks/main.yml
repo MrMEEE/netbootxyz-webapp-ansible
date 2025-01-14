@@ -47,7 +47,6 @@
     - data/config
     - data/assets
     - data/run
-    {{ netbootxyz_smb_pass }}
     - data/config/menus/remote
     - data/config/menus/local
     - data/samba
