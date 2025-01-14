@@ -36,7 +36,7 @@
   community.general.npm:
     path: "{{ netbootxyz_install_path }}/webapp"
 
-- name: Create data folder
+- name: Create data folders
   ansible.builtin.file:
     path: "{{ netbootxyz_install_path }}/{{ item }}"
     state: directory
@@ -46,10 +46,17 @@
   with_items:
     - data
     - data/config
-    - data/assets
     - data/run
     - data/config/menus/remote
     - data/config/menus/local
+
+- name: Create assets folder
+  ansible.builtin.file:
+    path: "{{ netbootxyz_install_path }}/data/assets"
+    state: directory
+    owner: "{{ netbootxyz_service_user }}"
+    group: "{{ netbootxyz_service_user }}"
+    mode: '0777'
 
 - name: Fetch Menudata
   shell: |
