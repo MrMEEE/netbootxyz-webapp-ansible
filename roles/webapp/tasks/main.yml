@@ -129,7 +129,7 @@
 
 - name: Create SAMBA user
   ansible.builtin.shell: |
-    (echo {{ netbootxyz_smb_passwd }}; echo {{ netbootxyz_smb_passwd }}) | smbpasswd -s -a {{ netbootxyz_smb_user }}
+    (echo {{ netbootxyz_smb_pass }}; echo {{ netbootxyz_smb_pass }}) | smbpasswd -s -a {{ netbootxyz_smb_user }}
 
 - name: Enable and start services
   ansible.builtin.service:
