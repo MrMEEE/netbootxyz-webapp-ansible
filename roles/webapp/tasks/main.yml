@@ -28,6 +28,7 @@
       - '@nodejs:{{ netbootxyz_nodejs_ver }}'
       - tftp-server
       - samba
+      - httpd
     state: latest
 
 - name: Install NPM Dependencies
@@ -137,7 +138,7 @@
     - httpd
     - netbootxyz-webapp
     - tftp
-    - samba
+    - smb
 
 - name: Create samba user
   command:
