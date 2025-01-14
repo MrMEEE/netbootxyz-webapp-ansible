@@ -1,0 +1,20 @@
+[Unit]
+Description=Netboot.xyz webapp service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Environment="NODE_ENV=production"
+Environment="WEB_APP_PORT={{ netbootxyz_webapp_port }}"
+Environment="DATAPATH={{ netbootxyz_install_path }}/data"
+Environment="TFTPCOMMAND=/bin/tftp -V"
+Environment="WEBSERVERCOMMAND=/sbin/httpd -V | head -1"
+Type=simple
+Restart=always
+RestartSec=1
+User=nbxyz
+WorkingDirectory={{ netbootxyz_install_path }}/webapp/
+ExecStart=/usr/bin/node app.js
+
+[Install]
+WantedBy=multi-user.target

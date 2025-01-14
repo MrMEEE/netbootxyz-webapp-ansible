@@ -1,0 +1,132 @@
+---
+# tasks file for webapp
+
+- name: Create install path
+  file:
+    path: "{{ netbootxyz_install_path }}"
+    state: directory
+    owner: "{{ netbootxyz_service_user }}"
+    group: "{{ netbootxyz_service_user }}"
+    mode: '0755'
+
+- name: Cloning the netboot.xyz webapp repo
+  ansible.builtin.git:
+    repo: "{{ netbootxyz_repo }}"
+    dest: "{{ netbootxyz_install_path }}/webapp"
+    update: yes
+    version: "{{ netbootxyz_repo_version }}"
+
+- name: Install dependencies
+  ansible.builtin.dnf:
+    name:
+      - '@nodejs:{{ netbootxyz_nodejs_ver }}'
+      - tftp-server
+      - samba
+    state: latest
+
+- name: Add the service user
+  ansible.builtin.user:
+    name: "{{ netbootxyz_service_user }}"
+    comment: Netboot.xyz Service User
+    uid: "{{ netbootxyz_service_user_uid }}"
+
+- name: Install NPM Dependencies
+  community.general.npm:
+    path: "{{ netbootxyz_install_path }}/webapp"
+
+- name: Create data folder
+  ansible.builtin.file:
+    path: "{{ netbootxyz_install_path }}/{{ item }}"
+    state: directory
+    owner: "{{ netbootxyz_service_user }}"
+    group: "{{ netbootxyz_service_user }}"
+    mode: '0755'
+  with_items:
+    - data
+    - data/config
+    - data/assets
+    - data/run
+    - data/config/menus
+    - data/config/menus/remote
+    - data/config/menus/local
+    - data/samba
+
+- name: Fetch Menudata
+  shell: |
+    if [[ ! -f /{{ netbootxyz_install_path }}/data/config/menus/remote/menu.ipxe ]]; then
+      if [[ -z ${MENU_VERSION+x} ]]; then \
+        MENU_VERSION=$(curl -sL "https://api.github.com/repos/netbootxyz/netboot.xyz/releases/latest" | jq -r '.tag_name')
+      fi
+      echo "[netbootxyz-init] Downloading netboot.xyz at ${MENU_VERSION}"
+      # menu files
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/endpoints.yml -sL \
+        "https://raw.githubusercontent.com/netbootxyz/netboot.xyz/${MENU_VERSION}/endpoints.yml"
+      curl -o \
+        /tmp/menus.tar.gz -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/menus.tar.gz"
+      tar xf \
+        /tmp/menus.tar.gz -C \
+        {{ netbootxyz_install_path }}/data/config/menus/remote
+      # boot files
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz.kpxe -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz.kpxe"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-undionly.kpxe -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-undionly.kpxe"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz.efi"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-snp.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-snp.efi"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-snponly.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-snponly.efi"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-arm64.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-arm64.efi"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-arm64-snp.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-arm64-snp.efi"
+      curl -o \
+        {{ netbootxyz_install_path }}/data/config/menus/remote/netboot.xyz-arm64-snponly.efi -sL \
+        "https://github.com/netbootxyz/netboot.xyz/releases/download/${MENU_VERSION}/netboot.xyz-arm64-snponly.efi"
+      # layer and cleanup
+      echo -n ${MENU_VERSION} > {{ netbootxyz_install_path }}/data/config/menuversion.txt
+      cp -r {{ netbootxyz_install_path }}/data/config/menus/remote/* {{ netbootxyz_install_path }}/data/config/menus
+      rm -f /tmp/menus.tar.gz
+    fi    
+  become_user: "{{ netbootxyz_service_user }}"
+
+- name: Recursively change ownership of the data folder
+  ansible.builtin.file:
+    path: "{{ netbootxyz_install_path }}/data"
+    state: directory
+    recurse: yes
+    owner: "{{ netbootxyz_service_user }}"
+    group: "{{ netbootxyz_service_user }}"
+
+- name: Install services
+  ansible.builtin.template: 
+    src: templates/{{ item }}.j2
+    dest: /etc/systemd/system/{{ item }}
+    mode: '0644'
+    owner: root
+    group: root
+  with_items:
+    - netbootxyz-webapp.service
+    - tftp.service
+
+
+
+- name: Enable and start services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  with_items:
+    - httpd
+    - netbootxyz-webapp
+    - tftp

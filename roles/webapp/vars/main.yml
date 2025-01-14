@@ -1,0 +1,9 @@
+---
+# vars file for webapp
+netbootxyz_repo: https://github.com/MrMEEE/webapp.git # Default: https://github.com/netbootxyz/webapp.git
+netbootxyz_install_path: /opt/netboot.xyz
+netbootxyz_nodejs_ver: 22
+netbootxyz_service_user: nbxyz
+netbootxyz_service_user_uid: 985
+netbootxyz_webapp_port: 3000
+netbootxyz_repo_version: add-configuration

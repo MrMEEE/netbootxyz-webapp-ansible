@@ -1,0 +1,10 @@
+<VirtualHost *:80>
+<Directory "{{ netbootxyz_install_path }}/data/assets">
+  AllowOverride None
+  Require all granted
+  Options Indexes
+</Directory>
+
+DocumentRoot "{{ netbootxyz_install_path }}/data/assets/"
+
+</VirtualHost>
