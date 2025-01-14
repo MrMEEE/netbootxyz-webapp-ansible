@@ -29,6 +29,7 @@
       - tftp-server
       - samba
       - httpd
+      - tar
     state: latest
 
 - name: Install NPM Dependencies
