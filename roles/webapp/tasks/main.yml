@@ -47,7 +47,7 @@
     - data/config
     - data/assets
     - data/run
-    - data/config/menus
+    {{ netbootxyz_smb_pass }}
     - data/config/menus/remote
     - data/config/menus/local
     - data/samba
@@ -139,6 +139,11 @@
     - netbootxyz-webapp
     - tftp
     - smb
+
+- name: Create local user for the smb user
+  ansible.builtin.user:
+    name: "{{ netbootxyz_smb_user }}"
+    comment: Netboot.xyz Samba User
 
 - name: Create samba user
   shell: |
