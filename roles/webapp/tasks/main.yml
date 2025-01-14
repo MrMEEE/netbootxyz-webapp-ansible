@@ -141,11 +141,8 @@
     - smb
 
 - name: Create samba user
-  command:
-    cmd: /usr/bin/smbpasswd -s -a {{ netbootxyz_smb_user }}
-    stdin: |
-      {{ netbootxyz_smb_pass }}
-      {{ netbootxyz_smb_pass }}
+  shell: |
+    (echo {{ netbootxyz_smb_pass }}; echo {{ netbootxyz_smb_pass }}) |/usr/bin/smbpasswd -s -a {{ netbootxyz_smb_user }}
   vars:
     smbuser_password: netbootxyz_smb_pass
 
