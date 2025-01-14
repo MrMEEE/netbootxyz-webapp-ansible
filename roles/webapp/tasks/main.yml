@@ -1,6 +1,12 @@
 ---
 # tasks file for webapp
 
+- name: Add the service user
+  ansible.builtin.user:
+    name: "{{ netbootxyz_service_user }}"
+    comment: Netboot.xyz Service User
+    uid: "{{ netbootxyz_service_user_uid }}"
+
 - name: Create install path
   ansible.builtin.file:
     path: "{{ netbootxyz_install_path }}"
@@ -23,12 +29,6 @@
       - tftp-server
       - samba
     state: latest
-
-- name: Add the service user
-  ansible.builtin.user:
-    name: "{{ netbootxyz_service_user }}"
-    comment: Netboot.xyz Service User
-    uid: "{{ netbootxyz_service_user_uid }}"
 
 - name: Install NPM Dependencies
   community.general.npm:
