@@ -127,14 +127,6 @@
     owner: root
     group: root
 
-- name: Create samba user
-  command:
-    cmd: /usr/bin/smbpasswd -s -a {{ netbootxyz_smb_user }}
-    stdin: |
-      {{ netbootxyz_smb_pass }}
-      {{ netbootxyz_smb_pass }}
-  vars:
-    smbuser_password: netbootxyz_smb_pass
 
 - name: Enable and start services
   ansible.builtin.service:
@@ -146,3 +138,13 @@
     - netbootxyz-webapp
     - tftp
     - samba
+
+- name: Create samba user
+  command:
+    cmd: /usr/bin/smbpasswd -s -a {{ netbootxyz_smb_user }}
+    stdin: |
+      {{ netbootxyz_smb_pass }}
+      {{ netbootxyz_smb_pass }}
+  vars:
+    smbuser_password: netbootxyz_smb_pass
+
