@@ -9,3 +9,4 @@ netbootxyz_webapp_port: 3000
 netbootxyz_repo_version: add-configuration
 netbootxyz_smb_user: netbootxyz
 netbootxyz_smb_pass: netbootxyz
+netbootxyz_smb_workgroup: NETBOOTXYZ
