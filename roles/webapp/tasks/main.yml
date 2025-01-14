@@ -2,7 +2,7 @@
 # tasks file for webapp
 
 - name: Create install path
-  file:
+  ansible.builtin.file:
     path: "{{ netbootxyz_install_path }}"
     state: directory
     owner: "{{ netbootxyz_service_user }}"
@@ -119,14 +119,25 @@
     - netbootxyz-webapp.service
     - tftp.service
 
+- name: Install samba configuration
+  ansible.builtin.template:
+    src: templates/smb.conf.j2
+    dest: /etc/samba/smb.conf
+    mode: '0644'
+    owner: root
+    group: root
 
+- name: Create SAMBA user
+  ansible.builtin.shell: |
+    (echo {{ netbootxyz_smb_passwd }}; echo {{ netbootxyz_smb_passwd }}) | smbpasswd -s -a {{ netbootxyz_smb_user }}
 
 - name: Enable and start services
   ansible.builtin.service:
     name: "{{ item }}"
     enabled: yes
-    state: started
+    state: restarted
   with_items:
     - httpd
     - netbootxyz-webapp
     - tftp
+    - samba
